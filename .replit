@@ -17,4 +17,4 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd perplexity-ask && npm run build && node dist/index.js"
+args = "cd perplexity-ask && npx tsc && node dist/index.js"
