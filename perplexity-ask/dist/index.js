@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
+import { GEMINI_FUNCTION_TOOL, handleGeminiFunction } from "./gemini-tools.js";
 /**
  * Definition of the Perplexity Ask Tool.
  * This tool accepts an array of messages and returns a chat completion response
@@ -200,7 +201,7 @@ const server = new Server({
  */
 server.setRequestHandler(ListToolsRequestSchema, () => __awaiter(void 0, void 0, void 0, function* () {
     return ({
-        tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL],
+        tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL, GEMINI_FUNCTION_TOOL],
     });
 }));
 /**
@@ -248,6 +249,16 @@ server.setRequestHandler(CallToolRequestSchema, (request) => __awaiter(void 0, v
                 // Invoke the chat completion function with the provided messages using the reasoning model
                 const messages = args.messages;
                 const result = yield performChatCompletion(messages, "sonar-reasoning-pro");
+                return {
+                    content: [{ type: "text", text: result }],
+                    isError: false,
+                };
+            }
+            case "gemini_function": {
+                if (!args.query || !args.functionName || !args.functionDescription || !args.parameters) {
+                    throw new Error("Invalid arguments for gemini_function: missing required fields");
+                }
+                const result = yield handleGeminiFunction(args);
                 return {
                     content: [{ type: "text", text: result }],
                     isError: false,
