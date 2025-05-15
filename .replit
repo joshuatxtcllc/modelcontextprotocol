@@ -18,3 +18,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd perplexity-ask && npx tsc && node dist/index.js"
+
+[[workflows.workflow]]
+name = "Run Gemini Function Demo"
+author = 27546771
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd perplexity-ask && npx tsc && node dist/gemini-function-demo.js"
