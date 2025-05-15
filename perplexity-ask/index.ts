@@ -8,6 +8,7 @@ import {
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import { GEMINI_FUNCTION_TOOL, handleGeminiFunction } from "./gemini-tools.js";
+import { GEMINI_CODE_EXECUTION_TOOL, handleGeminiCodeExecution } from "./gemini-code-execution.js";
 
 /**
  * Definition of the Perplexity Ask Tool.
@@ -215,7 +216,7 @@ const server = new Server(
  * When the client requests a list of tools, this handler returns all available Perplexity tools.
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL, GEMINI_FUNCTION_TOOL],
+  tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL, GEMINI_FUNCTION_TOOL, GEMINI_CODE_EXECUTION_TOOL],
 }));
 
 /**
@@ -273,6 +274,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           throw new Error("Invalid arguments for gemini_function: missing required fields");
         }
         const result = await handleGeminiFunction(args);
+        return {
+          content: [{ type: "text", text: result }],
+          isError: false,
+        };
+      }
+      case "gemini_code_execution": {
+        if (!args.prompt) {
+          throw new Error("Invalid arguments for gemini_code_execution: 'prompt' is required");
+        }
+        const result = await handleGeminiCodeExecution(args);
         return {
           content: [{ type: "text", text: result }],
           isError: false,
