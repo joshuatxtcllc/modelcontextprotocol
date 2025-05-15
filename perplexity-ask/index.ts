@@ -7,6 +7,7 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
+import { GEMINI_FUNCTION_TOOL, handleGeminiFunction } from "./gemini-tools.js";
 
 /**
  * Definition of the Perplexity Ask Tool.
@@ -214,7 +215,7 @@ const server = new Server(
  * When the client requests a list of tools, this handler returns all available Perplexity tools.
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL],
+  tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL, GEMINI_FUNCTION_TOOL],
 }));
 
 /**
@@ -262,6 +263,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // Invoke the chat completion function with the provided messages using the reasoning model
         const messages = args.messages;
         const result = await performChatCompletion(messages, "sonar-reasoning-pro");
+        return {
+          content: [{ type: "text", text: result }],
+          isError: false,
+        };
+      }
+      case "gemini_function": {
+        if (!args.query || !args.functionName || !args.functionDescription || !args.parameters) {
+          throw new Error("Invalid arguments for gemini_function: missing required fields");
+        }
+        const result = await handleGeminiFunction(args);
         return {
           content: [{ type: "text", text: result }],
           isError: false,
