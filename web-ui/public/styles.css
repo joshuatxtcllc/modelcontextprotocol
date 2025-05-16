@@ -357,6 +357,147 @@ body {
   gap: 5px;
 }
 
+/* Tool Tester Styles */
+.tool-tester {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.tool-tester h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.tool-tester textarea {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tool-tester button {
+  background-color: #0062cc;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tool-tester button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.test-result {
+  margin-top: 15px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.test-result h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.test-result pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+/* History styles */
+.history-item {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.history-item:hover {
+  background-color: #f0f0f0;
+}
+
+.history-timestamp {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.history-tool {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.history-preview {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* App Controls */
+.app-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.control-button {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.control-button:hover {
+  background-color: #e0e0e0;
+}
+
+.control-button svg {
+  margin-right: 5px;
+}
+
+.conversation-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.control-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.save-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.clear-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
   background-color: #007bff;
   border-radius: 50%;
   animation: dots 1.4s infinite ease-in-out both;

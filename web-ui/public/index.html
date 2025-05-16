@@ -33,6 +33,25 @@
 
 <body>
   <div id="root"></div>
+  
+  <!-- File History Modal -->
+  <div id="history-modal" class="modal">
+    <div class="modal-content">
+      <span class="close history-close">&times;</span>
+      <h2>Conversation History</h2>
+      <div id="history-list"></div>
+    </div>
+  </div>
+  
+  <!-- Tool Test Modal -->
+  <div id="tool-test-modal" class="modal">
+    <div class="modal-content">
+      <span class="close test-close">&times;</span>
+      <h2>Tool Tester</h2>
+      <div id="tool-test-container"></div>
+    </div>
+  </div>
+  
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>

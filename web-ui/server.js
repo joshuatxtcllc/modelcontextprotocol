@@ -41,7 +41,35 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: isServerHealthy ? 'healthy' : 'unhealthy',
     message: isServerHealthy ? 'MCP server is running' : 'MCP server is not running or starting up',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    tools: isServerHealthy ? 'available' : 'unavailable',
+    version: '1.2.0'
+  });
+});
+
+// Diagnostics endpoint for detailed system info
+app.get('/api/diagnostics', (req, res) => {
+  const memUsage = process.memoryUsage();
+  
+  res.json({
+    server: {
+      uptime: process.uptime(),
+      nodeVersion: process.version,
+      platform: process.platform,
+      memoryUsage: {
+        rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
+        heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
+        heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`
+      }
+    },
+    mcp: {
+      status: isServerHealthy ? 'running' : 'not running',
+      pid: mcpProcess ? mcpProcess.pid : null
+    },
+    environment: {
+      perplexityApiConfigured: !!process.env.PERPLEXITY_API_KEY,
+      geminiApiConfigured: !!process.env.GEMINI_API_KEY
+    }
   });
 });
 
