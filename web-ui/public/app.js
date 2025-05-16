@@ -1,4 +1,3 @@
-
 const { useState, useEffect, useRef } = React;
 
 const SendIcon = () => (
@@ -9,167 +8,147 @@ const SendIcon = () => (
 );
 
 const App = () => {
-  const [tools, setTools] = useState([]);
-  const [selectedTool, setSelectedTool] = useState('');
-  const [message, setMessage] = useState('');
-  const [conversations, setConversations] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-  
-  // Fetch available tools on component mount
-  useEffect(() => {
-    const fetchTools = async () => {
-      try {
-        const response = await axios.get('/api/tools');
-        setTools(response.data.tools);
-        if (response.data.tools.length > 0) {
-          setSelectedTool(response.data.tools[0].name);
-        }
-      } catch (error) {
-        console.error('Error fetching tools:', error);
-      }
-    };
-    
+  const [tools, setTools] = React.useState([]);
+  const [selectedTool, setSelectedTool] = React.useState('');
+  const [message, setMessage] = React.useState('');
+  const [conversations, setConversations] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const messagesEndRef = React.useRef(null);
+
+  // Fetch available tools when component mounts
+  React.useEffect(() => {
     fetchTools();
   }, []);
-  
-  // Auto-scroll to bottom of messages
-  useEffect(() => {
+
+  // Scroll to bottom when messages change
+  React.useEffect(() => {
     scrollToBottom();
   }, [conversations]);
-  
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-  
+
+  const fetchTools = async () => {
+    try {
+      const response = await axios.get('/api/tools');
+      if (response.data.tools && response.data.tools.length > 0) {
+        setTools(response.data.tools);
+        setSelectedTool(response.data.tools[0].name);
+      }
+    } catch (error) {
+      console.error('Error fetching tools:', error);
+    }
+  };
+
   const handleToolChange = (e) => {
     setSelectedTool(e.target.value);
   };
-  
+
   const handleMessageChange = (e) => {
     setMessage(e.target.value);
   };
-  
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-  
-  const handleSendMessage = async () => {
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!message.trim() || !selectedTool) return;
-    
+
     // Add user message to conversation
-    const newMessage = message.trim();
-    setConversations([...conversations, { role: 'user', content: newMessage }]);
+    const userMessage = {
+      role: 'user',
+      content: message
+    };
+    setConversations([...conversations, userMessage]);
     setMessage('');
     setIsLoading(true);
-    
+
     try {
-      // Prepare tool-specific arguments
-      let toolArguments = {};
-      
-      if (selectedTool === 'perplexity_ask' || 
-          selectedTool === 'perplexity_research' || 
-          selectedTool === 'perplexity_reason') {
-        // Extract existing messages for context
-        const contextMessages = conversations
-          .filter(msg => msg.role === 'user' || msg.role === 'assistant')
-          .map(msg => ({
-            role: msg.role === 'user' ? 'user' : 'assistant',
-            content: msg.content
-          }));
-        
-        // Add the new message
-        toolArguments = {
-          messages: [...contextMessages, { role: 'user', content: newMessage }]
-        };
+      let response;
+      if (selectedTool.startsWith('perplexity_')) {
+        // For Perplexity tools
+        response = await axios.post('/api/call-tool', {
+          tool: selectedTool,
+          arguments: {
+            messages: [userMessage]
+          }
+        });
       } else if (selectedTool === 'gemini_function') {
-        // For gemini_function, we need more structured data
-        toolArguments = {
-          query: newMessage,
-          functionName: "extract_information",
-          functionDescription: "Extracts structured information from user query",
-          parameters: {
-            type: "object",
-            properties: {
-              main_topic: {
-                type: "string",
-                description: "The main topic or subject"
-              },
-              key_details: {
-                type: "array",
-                items: {
-                  type: "string"
+        // For Gemini function tool
+        response = await axios.post('/api/call-tool', {
+          tool: selectedTool,
+          arguments: {
+            query: message,
+            functionName: "extractMeeting",
+            functionDescription: "Extract meeting details from text",
+            parameters: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                date: { type: "string" },
+                time: { type: "string" },
+                participants: { 
+                  type: "array",
+                  items: { type: "string" }
                 },
-                description: "Key details or points"
+                agenda: { 
+                  type: "array",
+                  items: { type: "string" }
+                }
               }
             }
           }
-        };
+        });
       } else if (selectedTool === 'gemini_code_execution') {
-        // For code execution
-        toolArguments = {
-          prompt: newMessage
-        };
+        // For Gemini code execution tool
+        response = await axios.post('/api/call-tool', {
+          tool: selectedTool,
+          arguments: {
+            prompt: message
+          }
+        });
       }
-      
-      // Call the selected tool
-      const response = await axios.post('/api/call-tool', {
-        tool: selectedTool,
-        arguments: toolArguments
-      });
-      
-      // Add assistant response to conversation
-      let responseText = '';
-      if (response.data.content && Array.isArray(response.data.content)) {
-        responseText = response.data.content
-          .filter(item => item.type === 'text')
-          .map(item => item.text)
-          .join('\n');
+
+      // Add assistant message to conversation
+      if (response.data.content && response.data.content.length > 0) {
+        setConversations([...conversations, userMessage, {
+          role: 'assistant',
+          content: response.data.content[0].text
+        }]);
       }
-      
-      setConversations([
-        ...conversations, 
-        { role: 'user', content: newMessage },
-        { role: 'assistant', content: responseText }
-      ]);
     } catch (error) {
       console.error('Error calling tool:', error);
-      setConversations([
-        ...conversations,
-        { role: 'user', content: newMessage },
-        { 
-          role: 'assistant', 
-          content: `Error: ${error.response?.data?.message || error.message}` 
-        }
-      ]);
+      setConversations([...conversations, userMessage, {
+        role: 'assistant',
+        content: `Error: ${error.message}`
+      }]);
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Format message content with basic markdown-like rendering
+
   const formatContent = (content) => {
-    // Replace code blocks
-    let formattedContent = content.replace(
-      /```(\w+)?\n([\s\S]*?)\n```/g, 
-      '<pre><code>$2</code></pre>'
+    if (!content) return { __html: '' };
+
+    let formattedContent = content;
+
+    // Convert markdown code blocks
+    formattedContent = formattedContent.replace(
+      /```([^`]+)```/g, 
+      '<pre><code>$1</code></pre>'
     );
-    
-    // Replace inline code
+
+    // Convert inline code
     formattedContent = formattedContent.replace(
       /`([^`]+)`/g, 
       '<code>$1</code>'
     );
-    
+
     // Replace line breaks
     formattedContent = formattedContent.replace(/\n/g, '<br>');
-    
+
     return { __html: formattedContent };
   };
-  
+
   return (
     <div className="app-container">
       <div className="header">
@@ -186,7 +165,7 @@ const App = () => {
           ))}
         </select>
       </div>
-      
+
       <div className="chat-container">
         <div className="chat-messages">
           {conversations.map((msg, index) => (
@@ -208,22 +187,26 @@ const App = () => {
           )}
           <div ref={messagesEndRef} />
         </div>
-        
+
         <div className="input-container">
           <textarea
             className="message-input"
             value={message}
             onChange={handleMessageChange}
-            onKeyPress={handleKeyPress}
-            placeholder={`Ask something using ${selectedTool}...`}
-            disabled={isLoading}
+            placeholder="Type your message..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
           />
           <button 
-            className="send-button" 
-            onClick={handleSendMessage}
-            disabled={isLoading || !message.trim()}
+            className="send-button"
+            onClick={handleSubmit}
+            disabled={!message.trim() || !selectedTool}
           >
-            <SendIcon />
+            Send
           </button>
         </div>
       </div>
@@ -231,4 +214,5 @@ const App = () => {
   );
 };
 
+// Render the React app
 ReactDOM.render(<App />, document.getElementById('root'));
