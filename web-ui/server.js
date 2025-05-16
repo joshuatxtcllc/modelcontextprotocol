@@ -13,22 +13,63 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Start MCP server as a child process
-const mcpProcess = spawn('node', ['../perplexity-ask/dist/index.js'], {
-  env: {
-    ...process.env,
-    PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
-    GEMINI_API_KEY: process.env.GEMINI_API_KEY
-  }
+let mcpProcess;
+let isServerHealthy = false;
+
+function startMCPServer() {
+  console.log('Starting MCP server...');
+  
+  mcpProcess = spawn('node', ['../perplexity-ask/dist/index.js'], {
+    env: {
+      ...process.env,
+      PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY
+    }
+  });
+
+  mcpProcess.stderr.on('data', (data) => {
+    console.log(`MCP stderr: ${data}`);
+    // Look for server startup message
+    if (data.toString().includes('MCP Server running')) {
+      isServerHealthy = true;
+      console.log('MCP server is healthy');
+    }
+  });
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: isServerHealthy ? 'healthy' : 'unhealthy',
+    message: isServerHealthy ? 'MCP server is running' : 'MCP server is not running or starting up',
+    timestamp: new Date().toISOString()
+  });
 });
 
-mcpProcess.stderr.on('data', (data) => {
-  console.log(`MCP stderr: ${data}`);
-});
 
-// Handle MCP server process exit
-mcpProcess.on('exit', (code, signal) => {
-  console.log(`MCP process exited with code ${code} and signal ${signal}`);
-});
+  // Handle MCP server process exit
+  mcpProcess.on('exit', (code, signal) => {
+    console.log(`MCP process exited with code ${code} and signal ${signal}`);
+    isServerHealthy = false;
+    // Restart server after a delay
+    setTimeout(() => {
+      startMCPServer();
+    }, 5000);
+  });
+}
+
+// Start the server initially
+startMCPServer();
+
+// Health check timeout handler
+function setupRequestTimeout(callback, timeoutMs = 30000) {
+  let timeoutId = setTimeout(() => {
+    callback(new Error('Request timed out'));
+  }, timeoutMs);
+  
+  return {
+    clear: () => clearTimeout(timeoutId)
+  };
+}
 
 // Queue for MCP requests and responses
 let requestQueue = [];
@@ -40,6 +81,20 @@ function processNextRequest() {
   if (requestQueue.length > 0 && !currentRequest) {
     currentRequest = requestQueue.shift();
     
+    // Check if server is healthy
+    if (!isServerHealthy) {
+      currentRequest.callback({
+        error: {
+          code: -32000,
+          message: "MCP server is not available"
+        }
+      });
+      currentRequest = null;
+      // Try next request after delay
+      setTimeout(processNextRequest, 1000);
+      return;
+    }
+    
     // Send request to MCP server
     const requestStr = JSON.stringify(currentRequest.request) + '\n';
     mcpProcess.stdin.write(requestStr);
@@ -47,9 +102,31 @@ function processNextRequest() {
     // Set callback for response
     responseCallback = currentRequest.callback;
     
+    // Setup timeout
+    const timeout = setupRequestTimeout((error) => {
+      console.error('Request timed out:', error);
+      if (responseCallback) {
+        responseCallback({
+          error: {
+            code: -32000,
+            message: "Request timed out"
+          }
+        });
+        
+        // Clean up
+        mcpProcess.stdout.removeListener('data', responseHandler);
+        currentRequest = null;
+        responseCallback = null;
+        
+        // Process next request
+        processNextRequest();
+      }
+    });
+    
     // Listen for response from MCP server
     const responseHandler = (data) => {
       try {
+        timeout.clear();
         const response = JSON.parse(data.toString());
         responseCallback(response);
         currentRequest = null;
