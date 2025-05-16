@@ -49,27 +49,41 @@ app.get('/api/health', (req, res) => {
 
 // Diagnostics endpoint for detailed system info
 app.get('/api/diagnostics', (req, res) => {
-  const memUsage = process.memoryUsage();
-  
-  res.json({
-    server: {
-      uptime: process.uptime(),
-      nodeVersion: process.version,
-      platform: process.platform,
-      memoryUsage: {
-        rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
-        heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
-        heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`
+  try {
+    const memUsage = process.memoryUsage();
+    
+    res.json({
+      server: {
+        uptime: process.uptime(),
+        nodeVersion: process.version,
+        platform: process.platform,
+        memoryUsage: {
+          rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
+          heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
+          heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`
+        }
+      },
+      mcp: {
+        status: isServerHealthy ? 'running' : 'not running',
+        pid: mcpProcess ? mcpProcess.pid : null
+      },
+      environment: {
+        perplexityApiConfigured: !!process.env.PERPLEXITY_API_KEY,
+        geminiApiConfigured: !!process.env.GEMINI_API_KEY
       }
-    },
-    mcp: {
-      status: isServerHealthy ? 'running' : 'not running',
-      pid: mcpProcess ? mcpProcess.pid : null
-    },
-    environment: {
-      perplexityApiConfigured: !!process.env.PERPLEXITY_API_KEY,
-      geminiApiConfigured: !!process.env.GEMINI_API_KEY
-    }
+    });
+  } catch (error) {
+    console.error('Error in diagnostics endpoint:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// Add a general error handler
+app.use((err, req, res, next) => {
+  console.error('Express error handler:', err);
+  res.status(500).json({
+    error: 'Server error',
+    message: err.message
   });
 });
 

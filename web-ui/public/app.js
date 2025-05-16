@@ -86,32 +86,15 @@ const App = () => {
       openToolTestModal();
     });
     
-    // Function modal handlers
-    if (functionClose) {
-      functionClose.onclick = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        functionModal.style.display = 'none';
-      };
-    }
-    
-    // History modal handlers
-    if (historyClose) {
-      historyClose.onclick = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        historyModal.style.display = 'none';
-      };
-    }
-    
-    // Test modal handlers
-    if (testClose) {
-      testClose.onclick = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        testModal.style.display = 'none';
-      };
-    }
+    // Setup close handlers for all modals
+    document.querySelectorAll('.close, .nav-close, .history-close, .test-close').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const modal = this.closest('.modal');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+      });
+    });
     
     // Window click to close modals
     window.onclick = (event) => {
@@ -129,26 +112,14 @@ const App = () => {
       }
     };
     
-    // Navigation modal close button
-    if (navClose) {
-      navClose.onclick = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        navigationModal.style.display = 'none';
-      };
-    }
-    
-    // Ensure all close buttons are properly attached
-    document.addEventListener('DOMContentLoaded', () => {
-      const closeButtons = document.querySelectorAll('.close, .nav-close, .history-close, .test-close');
-      closeButtons.forEach(btn => {
-        btn.addEventListener('click', function(event) {
-          event.preventDefault();
-          event.stopPropagation();
-          const modal = this.closest('.modal');
-          if (modal) modal.style.display = 'none';
+    // For escape key to close modals
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+          modal.style.display = 'none';
         });
-      });
+      }
     });
     
     // Form submission
