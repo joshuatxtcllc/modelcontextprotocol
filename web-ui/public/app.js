@@ -45,12 +45,46 @@ const App = () => {
     const functionModal = document.getElementById('function-modal');
     const historyModal = document.getElementById('history-modal');
     const testModal = document.getElementById('tool-test-modal');
+    const navigationModal = document.getElementById('navigation-modal');
     
     const functionClose = document.getElementsByClassName('close')[0];
     const historyClose = document.getElementsByClassName('history-close')[0];
     const testClose = document.getElementsByClassName('test-close')[0];
+    const navClose = document.getElementsByClassName('nav-close')[0];
     
     const functionForm = document.getElementById('function-form');
+    
+    // Add menu button to the DOM
+    const menuButton = document.createElement('button');
+    menuButton.className = 'menu-button';
+    menuButton.innerHTML = '☰';
+    menuButton.onclick = () => {
+      navigationModal.style.display = 'block';
+    };
+    document.body.appendChild(menuButton);
+    
+    // Setup navigation menu buttons
+    document.getElementById('main-interface-btn')?.addEventListener('click', () => {
+      navigationModal.style.display = 'none';
+      functionModal.style.display = 'none';
+      historyModal.style.display = 'none';
+      testModal.style.display = 'none';
+    });
+    
+    document.getElementById('function-editor-btn')?.addEventListener('click', () => {
+      navigationModal.style.display = 'none';
+      functionModal.style.display = 'block';
+    });
+    
+    document.getElementById('history-btn')?.addEventListener('click', () => {
+      navigationModal.style.display = 'none';
+      openHistoryModal();
+    });
+    
+    document.getElementById('tool-test-btn')?.addEventListener('click', () => {
+      navigationModal.style.display = 'none';
+      openToolTestModal();
+    });
     
     // Function modal handlers
     if (functionClose) {
@@ -84,7 +118,17 @@ const App = () => {
       if (event.target === testModal) {
         testModal.style.display = 'none';
       }
+      if (event.target === navigationModal) {
+        navigationModal.style.display = 'none';
+      }
     };
+    
+    // Navigation modal close button
+    if (navClose) {
+      navClose.onclick = () => {
+        navigationModal.style.display = 'none';
+      };
+    }
     
     // Form submission
     if (functionForm) {
