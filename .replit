@@ -8,7 +8,7 @@ channel = "stable-24_05"
 run = ["sh", "-c", "npm run start"]
 
 [workflows]
-runButton = "Run"
+runButton = "Run Integrated System"
 
 [[workflows.workflow]]
 name = "Run"
@@ -36,3 +36,25 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd perplexity-ask && npx tsc && node dist/gemini-api-demo.js"
+
+[[workflows.workflow]]
+name = "Run Web UI"
+author = 27546771
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd web-ui && bash run.sh"
+
+[[workflows.workflow]]
+name = "Run Integrated System"
+author = 27546771
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd perplexity-ask && npx tsc && node dist/index.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd web-ui && bash run.sh"
