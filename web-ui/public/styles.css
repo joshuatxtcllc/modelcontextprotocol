@@ -223,16 +223,25 @@ body {
   z-index: 1001;
 }
 
-.close {
+.close, .nav-close, .history-close, .test-close {
   color: #aaa;
   float: right;
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
+  position: relative;
+  z-index: 1002;
+  padding: 0 5px;
 }
 
 .close:hover,
-.close:focus {
+.close:focus,
+.nav-close:hover,
+.nav-close:focus,
+.history-close:hover,
+.history-close:focus,
+.test-close:hover,
+.test-close:focus {
   color: black;
   text-decoration: none;
 }
@@ -564,4 +573,18 @@ body {
   40% { 
     transform: scale(1.0);
   }
+}
+
+/* Fix for button compatibility */
+button {
+  cursor: pointer;
+}
+
+.btn-save {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }

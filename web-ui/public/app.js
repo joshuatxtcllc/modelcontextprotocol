@@ -88,21 +88,27 @@ const App = () => {
     
     // Function modal handlers
     if (functionClose) {
-      functionClose.onclick = () => {
+      functionClose.onclick = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
         functionModal.style.display = 'none';
       };
     }
     
     // History modal handlers
     if (historyClose) {
-      historyClose.onclick = () => {
+      historyClose.onclick = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
         historyModal.style.display = 'none';
       };
     }
     
     // Test modal handlers
     if (testClose) {
-      testClose.onclick = () => {
+      testClose.onclick = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
         testModal.style.display = 'none';
       };
     }
@@ -125,10 +131,25 @@ const App = () => {
     
     // Navigation modal close button
     if (navClose) {
-      navClose.onclick = () => {
+      navClose.onclick = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
         navigationModal.style.display = 'none';
       };
     }
+    
+    // Ensure all close buttons are properly attached
+    document.addEventListener('DOMContentLoaded', () => {
+      const closeButtons = document.querySelectorAll('.close, .nav-close, .history-close, .test-close');
+      closeButtons.forEach(btn => {
+        btn.addEventListener('click', function(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          const modal = this.closest('.modal');
+          if (modal) modal.style.display = 'none';
+        });
+      });
+    });
     
     // Form submission
     if (functionForm) {
