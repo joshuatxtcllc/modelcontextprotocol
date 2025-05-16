@@ -58,3 +58,7 @@ args = "cd perplexity-ask && npx tsc && node dist/index.js"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd web-ui && bash run.sh"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
