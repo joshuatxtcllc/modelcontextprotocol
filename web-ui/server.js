@@ -35,6 +35,15 @@ function startMCPServer() {
       console.log('MCP server is healthy');
     }
   });
+  
+  mcpProcess.stdout.on('data', (data) => {
+    console.log(`MCP stdout: ${data}`);
+    // Also check stdout for server startup message
+    if (data.toString().includes('MCP Server running')) {
+      isServerHealthy = true;
+      console.log('MCP server is healthy');
+    }
+  });
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
