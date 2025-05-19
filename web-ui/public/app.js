@@ -1,4 +1,3 @@
-
 // React and its hooks
 const { useState, useEffect, useRef } = React;
 
@@ -40,20 +39,20 @@ const App = () => {
   useEffect(() => {
     fetchTools();
     loadSavedHistory();
-    
+
     // Setup modal event handlers
     const functionModal = document.getElementById('function-modal');
     const historyModal = document.getElementById('history-modal');
     const testModal = document.getElementById('tool-test-modal');
     const navigationModal = document.getElementById('navigation-modal');
-    
+
     const functionClose = document.getElementsByClassName('close')[0];
     const historyClose = document.getElementsByClassName('history-close')[0];
     const testClose = document.getElementsByClassName('test-close')[0];
     const navClose = document.getElementsByClassName('nav-close')[0];
-    
+
     const functionForm = document.getElementById('function-form');
-    
+
     // Add menu button to the DOM
     const menuButton = document.createElement('button');
     menuButton.className = 'menu-button';
@@ -62,7 +61,7 @@ const App = () => {
       navigationModal.style.display = 'block';
     };
     document.body.appendChild(menuButton);
-    
+
     // Setup navigation menu buttons
     document.getElementById('main-interface-btn')?.addEventListener('click', () => {
       navigationModal.style.display = 'none';
@@ -70,22 +69,22 @@ const App = () => {
       historyModal.style.display = 'none';
       testModal.style.display = 'none';
     });
-    
+
     document.getElementById('function-editor-btn')?.addEventListener('click', () => {
       navigationModal.style.display = 'none';
       functionModal.style.display = 'block';
     });
-    
+
     document.getElementById('history-btn')?.addEventListener('click', () => {
       navigationModal.style.display = 'none';
       openHistoryModal();
     });
-    
+
     document.getElementById('tool-test-btn')?.addEventListener('click', () => {
       navigationModal.style.display = 'none';
       openToolTestModal();
     });
-    
+
     // Setup close handlers for all modals
     document.querySelectorAll('.close, .nav-close, .history-close, .test-close').forEach(btn => {
       btn.addEventListener('click', function() {
@@ -95,7 +94,7 @@ const App = () => {
         }
       });
     });
-    
+
     // Window click to close modals
     window.onclick = (event) => {
       if (event.target === functionModal) {
@@ -111,7 +110,7 @@ const App = () => {
         navigationModal.style.display = 'none';
       }
     };
-    
+
     // For escape key to close modals
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape') {
@@ -121,7 +120,7 @@ const App = () => {
         });
       }
     });
-    
+
     // Form submission
     if (functionForm) {
       functionForm.onsubmit = (e) => {
@@ -129,7 +128,7 @@ const App = () => {
         saveCustomFunction();
       };
     }
-    
+
     // Load saved functions from localStorage
     const savedFunctions = localStorage.getItem('customFunctions');
     if (savedFunctions) {
@@ -224,7 +223,7 @@ const App = () => {
               }
             }
           };
-          
+
           response = await axios.post('/api/call-tool', {
             tool: selectedTool,
             arguments: {
@@ -243,9 +242,9 @@ const App = () => {
             }
           });
         }
-        
+
         success = true;
-        
+
         // Add assistant message to conversation
         if (response.data.content && response.data.content.length > 0) {
           setConversations([...conversations, userMessage, {
@@ -274,7 +273,7 @@ const App = () => {
 
   const openFunctionModal = () => {
     document.getElementById('function-modal').style.display = 'block';
-    
+
     // Clear form if creating new function
     if (!selectedFunction) {
       document.getElementById('function-name').value = '';
@@ -287,23 +286,23 @@ const App = () => {
       document.getElementById('function-params').value = JSON.stringify(selectedFunction.parameters, null, 2);
     }
   };
-  
+
   const saveCustomFunction = () => {
     try {
       const name = document.getElementById('function-name').value;
       const description = document.getElementById('function-description').value;
       const paramsStr = document.getElementById('function-params').value;
-      
+
       if (!name || !description || !paramsStr) {
         alert('All fields are required');
         return;
       }
-      
+
       // Validate JSON
       const parameters = JSON.parse(paramsStr);
-      
+
       const newFunction = { name, description, parameters };
-      
+
       let updatedFunctions;
       if (selectedFunction) {
         // Update existing function
@@ -314,7 +313,7 @@ const App = () => {
         // Add new function
         updatedFunctions = [...customFunctions, newFunction];
       }
-      
+
       setCustomFunctions(updatedFunctions);
       localStorage.setItem('customFunctions', JSON.stringify(updatedFunctions));
       setSelectedFunction(null);
@@ -323,7 +322,7 @@ const App = () => {
       alert('Invalid JSON schema: ' + e.message);
     }
   };
-  
+
   const deleteCustomFunction = (name) => {
     if (window.confirm(`Are you sure you want to delete the function "${name}"?`)) {
       const updatedFunctions = customFunctions.filter(f => f.name !== name);
@@ -340,13 +339,13 @@ const App = () => {
       tool: selectedTool,
       messages: conversations
     };
-    
+
     // Save to localStorage
     const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
     savedConversations.push(conversationData);
     localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
     setSavedHistory(savedConversations);
-    
+
     // Download as JSON
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(conversationData, null, 2));
     const downloadAnchorNode = document.createElement('a');
@@ -356,7 +355,7 @@ const App = () => {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   };
-  
+
   const clearConversation = () => {
     if (window.confirm('Are you sure you want to clear the current conversation?')) {
       setConversations([]);
@@ -367,49 +366,49 @@ const App = () => {
     // Populate history list
     const historyList = document.getElementById('history-list');
     historyList.innerHTML = '';
-    
+
     if (savedHistory.length === 0) {
       historyList.innerHTML = '<p>No saved conversations found.</p>';
       document.getElementById('history-modal').style.display = 'block';
       return;
     }
-    
+
     // Sort history by timestamp (newest first)
     const sortedHistory = [...savedHistory].sort((a, b) => 
       new Date(b.timestamp) - new Date(a.timestamp)
     );
-    
+
     sortedHistory.forEach((item, index) => {
       const historyItem = document.createElement('div');
       historyItem.className = 'history-item';
-      
+
       // Format date
       const date = new Date(item.timestamp);
       const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-      
+
       // Get the first user message as preview
       const preview = item.messages.find(m => m.role === 'user')?.content || 'No content';
-      
+
       historyItem.innerHTML = `
         <div class="history-timestamp">${formattedDate}</div>
         <div class="history-tool">Tool: ${item.tool}</div>
         <div class="history-preview">${preview.substring(0, 50)}${preview.length > 50 ? '...' : ''}</div>
       `;
-      
+
       historyItem.addEventListener('click', () => {
         loadConversation(item);
         document.getElementById('history-modal').style.display = 'none';
       });
-      
+
       historyList.appendChild(historyItem);
     });
-    
+
     document.getElementById('history-modal').style.display = 'block';
   };
-  
+
   const loadConversation = (conversationData) => {
     setConversations(conversationData.messages);
-    
+
     // Set the tool if it exists in available tools
     if (tools.some(tool => tool.name === conversationData.tool)) {
       setSelectedTool(conversationData.tool);
@@ -419,11 +418,11 @@ const App = () => {
   const openToolTestModal = () => {
     const container = document.getElementById('tool-test-container');
     container.innerHTML = '';
-    
+
     // Create a React root for the test container
     const testRoot = ReactDOM.createRoot(container);
     testRoot.render(<ToolTester toolName={selectedTool} />);
-    
+
     document.getElementById('tool-test-modal').style.display = 'block';
   };
 
@@ -455,16 +454,16 @@ const App = () => {
     const [testInput, setTestInput] = useState('');
     const [testResult, setTestResult] = useState(null);
     const [testing, setTesting] = useState(false);
-    
+
     const testTool = async () => {
       if (!testInput.trim()) return;
-      
+
       setTesting(true);
       setTestResult(null);
-      
+
       try {
         let response;
-        
+
         if (toolName.startsWith('perplexity_')) {
           response = await axios.post('/api/call-tool', {
             tool: toolName,
@@ -495,7 +494,7 @@ const App = () => {
             }
           });
         }
-        
+
         setTestResult(response.data);
       } catch (error) {
         setTestResult({ error: error.message });
@@ -503,7 +502,7 @@ const App = () => {
         setTesting(false);
       }
     };
-    
+
     return (
       <div className="tool-tester">
         <h3>Test Tool: {toolName}</h3>
@@ -516,7 +515,7 @@ const App = () => {
         <button onClick={testTool} disabled={testing || !testInput.trim()}>
           {testing ? 'Testing...' : 'Run Test'}
         </button>
-        
+
         {testResult && (
           <div className="test-result">
             <h4>Result:</h4>
@@ -543,13 +542,13 @@ const App = () => {
               </option>
             ))}
           </select>
-          
+
           {selectedTool === 'gemini_function' && (
             <div className="function-controls">
               <button className="function-btn" onClick={() => { setSelectedFunction(null); openFunctionModal(); }}>
                 New Function
               </button>
-              
+
               {customFunctions.length > 0 && (
                 <select className="function-selector" onChange={(e) => {
                   const selected = customFunctions.find(f => f.name === e.target.value);
@@ -561,7 +560,7 @@ const App = () => {
                   ))}
                 </select>
               )}
-              
+
               {selectedFunction && (
                 <div className="function-actions">
                   <button className="edit-btn" onClick={openFunctionModal}>Edit</button>
@@ -572,7 +571,7 @@ const App = () => {
           )}
         </div>
       </div>
-      
+
       <div className="app-controls">
         <button className="control-button" onClick={openHistoryModal}>
           <HistoryIcon /> History

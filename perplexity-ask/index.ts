@@ -9,6 +9,8 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { GEMINI_FUNCTION_TOOL, handleGeminiFunction } from "./gemini-tools.js";
 import { GEMINI_CODE_EXECUTION_TOOL, handleGeminiCodeExecution } from "./gemini-code-execution.js";
+import { OPENAI_CHAT_TOOL, handleOpenAIChat } from "./openai-tools.js";
+import { CLAUDE_CHAT_TOOL, handleClaudeChat } from "./claude-tools.js";
 
 /**
  * Definition of the Perplexity Ask Tool.
@@ -216,7 +218,15 @@ const server = new Server(
  * When the client requests a list of tools, this handler returns all available Perplexity tools.
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL, GEMINI_FUNCTION_TOOL, GEMINI_CODE_EXECUTION_TOOL],
+  tools: [
+    PERPLEXITY_ASK_TOOL, 
+    PERPLEXITY_RESEARCH_TOOL, 
+    PERPLEXITY_REASON_TOOL, 
+    GEMINI_FUNCTION_TOOL, 
+    GEMINI_CODE_EXECUTION_TOOL,
+    OPENAI_CHAT_TOOL,
+    CLAUDE_CHAT_TOOL
+  ],
 }));
 
 /**
@@ -284,6 +294,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           throw new Error("Invalid arguments for gemini_code_execution: 'prompt' is required");
         }
         const result = await handleGeminiCodeExecution(args);
+        return {
+          content: [{ type: "text", text: result }],
+          isError: false,
+        };
+      }
+      case "openai_chat": {
+        if (!Array.isArray(args.messages)) {
+          throw new Error("Invalid arguments for openai_chat: 'messages' must be an array");
+        }
+        const result = await handleOpenAIChat(args);
+        return {
+          content: [{ type: "text", text: result }],
+          isError: false,
+        };
+      }
+      case "claude_chat": {
+        if (!Array.isArray(args.messages)) {
+          throw new Error("Invalid arguments for claude_chat: 'messages' must be an array");
+        }
+        const result = await handleClaudeChat(args);
         return {
           content: [{ type: "text", text: result }],
           isError: false,

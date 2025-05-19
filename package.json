@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google/genai": "^0.14.1"
+    "@anthropic-ai/sdk": "^0.51.0",
+    "@google/genai": "^0.14.1",
+    "openai": "^4.100.0"
   }
 }
