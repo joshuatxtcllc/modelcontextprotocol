@@ -648,5 +648,4 @@ const App = () => {
 };
 
 // Render the React app
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);

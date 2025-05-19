@@ -45,6 +45,11 @@ function startMCPServer() {
     }
   });
 
+  mcpProcess.on('error', (error) => {
+    console.error(`MCP process error: ${error}`);
+    isServerHealthy = false;
+  });
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
