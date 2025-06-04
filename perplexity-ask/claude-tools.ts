@@ -37,6 +37,10 @@ export const CLAUDE_CHAT_TOOL: Tool = {
         type: "number",
         description: "Maximum number of tokens to generate",
         default: 4000
+      },
+      system: {
+        type: "string",
+        description: "Optional system prompt to set context for Claude"
       }
     },
     required: ["messages"],
@@ -65,7 +69,7 @@ export async function handleClaudeChat(args: any): Promise<string> {
     const response = await anthropic.messages.create({
       model: args.model || "claude-3-opus-20240229",
       max_tokens: args.max_tokens || 4000,
-      messages: args.messages,
+      messages: messages,
       system: args.system,
     });
 
