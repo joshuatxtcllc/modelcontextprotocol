@@ -39,9 +39,10 @@ export const CLAUDE_CHAT_TOOL = {
                 description: "The Claude model to use (e.g., claude-3-opus-20240229, claude-3-sonnet-20240229)",
                 default: "claude-3-opus-20240229"
             },
-            system: {
-                type: "string",
-                description: "Optional system prompt to set context for Claude"
+            max_tokens: {
+                type: "number",
+                description: "Maximum number of tokens to generate",
+                default: 4000
             }
         },
         required: ["messages"],
@@ -66,7 +67,8 @@ export function handleClaudeChat(args) {
             });
             const response = yield anthropic.messages.create({
                 model: args.model || "claude-3-opus-20240229",
-                messages: messages,
+                max_tokens: args.max_tokens || 4000,
+                messages: args.messages,
                 system: args.system,
             });
             // Return Claude's response
