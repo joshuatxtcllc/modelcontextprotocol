@@ -1,4 +1,3 @@
-
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -34,9 +33,10 @@ export const CLAUDE_CHAT_TOOL: Tool = {
         description: "The Claude model to use (e.g., claude-3-opus-20240229, claude-3-sonnet-20240229)",
         default: "claude-3-opus-20240229"
       },
-      system: {
-        type: "string",
-        description: "Optional system prompt to set context for Claude"
+      max_tokens: {
+        type: "number",
+        description: "Maximum number of tokens to generate",
+        default: 4000
       }
     },
     required: ["messages"],
@@ -48,11 +48,11 @@ export async function handleClaudeChat(args: any): Promise<string> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY environment variable is required");
   }
-  
+
   const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
   });
-  
+
   try {
     // Convert messages format if needed (map system messages)
     const messages = args.messages.map((msg: any) => {
@@ -61,13 +61,14 @@ export async function handleClaudeChat(args: any): Promise<string> {
       }
       return msg;
     });
-    
+
     const response = await anthropic.messages.create({
       model: args.model || "claude-3-opus-20240229",
-      messages: messages,
+      max_tokens: args.max_tokens || 4000,
+      messages: args.messages,
       system: args.system,
     });
-    
+
     // Return Claude's response
     return response.content[0].text;
   } catch (error) {
