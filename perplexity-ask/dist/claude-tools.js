@@ -71,8 +71,14 @@ export function handleClaudeChat(args) {
                 messages: args.messages,
                 system: args.system,
             });
-            // Return Claude's response
-            return response.content[0].text;
+            // Return Claude's response - handle different content types
+            const content = response.content[0];
+            if (content.type === 'text') {
+                return content.text;
+            }
+            else {
+                return JSON.stringify(content);
+            }
         }
         catch (error) {
             throw new Error(`Claude API error: ${error instanceof Error ? error.message : String(error)}`);
