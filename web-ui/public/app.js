@@ -148,12 +148,33 @@ const App = () => {
   const fetchTools = async () => {
     try {
       const response = await axios.get('/api/tools');
-      if (response.data.tools && response.data.tools.length > 0) {
+      console.log('Tools response:', response.data);
+      if (response.data && response.data.tools && response.data.tools.length > 0) {
         setTools(response.data.tools);
         setSelectedTool(response.data.tools[0].name);
+      } else if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        // Handle case where tools are returned directly as an array
+        setTools(response.data);
+        setSelectedTool(response.data[0].name);
+      } else {
+        console.warn('No tools available or unexpected response format');
+        // Set some default tools if none are available
+        const defaultTools = [
+          { name: 'perplexity_ask', description: 'Ask Perplexity AI' },
+          { name: 'perplexity_research', description: 'Research with Perplexity' }
+        ];
+        setTools(defaultTools);
+        setSelectedTool(defaultTools[0].name);
       }
     } catch (error) {
       console.error('Error fetching tools:', error);
+      // Set default tools on error
+      const defaultTools = [
+        { name: 'perplexity_ask', description: 'Ask Perplexity AI' },
+        { name: 'perplexity_research', description: 'Research with Perplexity' }
+      ];
+      setTools(defaultTools);
+      setSelectedTool(defaultTools[0].name);
     }
   };
 
@@ -530,6 +551,9 @@ const App = () => {
     <div className="app-container">
       <div className="header">
         <h1>MCP Web Interface</h1>
+        <div className="debug-info" style={{fontSize: '12px', color: '#666', marginBottom: '10px'}}>
+          Tools: {tools.length}, Selected: {selectedTool || 'none'}, Message: {message.length} chars, Loading: {isLoading ? 'yes' : 'no'}
+        </div>
         <div className="tool-controls">
           <select 
             className="tool-selector" 
@@ -637,6 +661,12 @@ const App = () => {
             className="send-button"
             onClick={handleSubmit}
             disabled={!message.trim() || !selectedTool || isLoading}
+            title={
+              !message.trim() ? 'Enter a message' : 
+              !selectedTool ? 'Select a tool' : 
+              isLoading ? 'Loading...' : 
+              'Send message'
+            }
           >
             <SendIcon />
           </button>
